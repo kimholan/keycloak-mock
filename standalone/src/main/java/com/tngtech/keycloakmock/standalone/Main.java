@@ -4,6 +4,9 @@ import static com.tngtech.keycloakmock.api.ServerConfig.aServerConfig;
 
 import com.tngtech.keycloakmock.api.KeycloakMock;
 import com.tngtech.keycloakmock.api.LoginRoleMapping;
+
+import java.io.File;
+import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
@@ -89,6 +92,12 @@ public class Main implements Callable<Void> {
               + " options: ${COMPLETION-CANDIDATES}")
   private LoginRoleMapping loginRoleMapping;
 
+  @Option(
+          names = {"-cc", "--customClaims"},
+          description =
+                  "JSON List to add hardcoded *custom* claims to tokens for entries matching by ('sub','azp')-claims")
+  private File customClaims;
+
   public static void main(@Nonnull final String[] args) {
     if (System.getProperty("org.slf4j.simpleLogger.logFile") == null) {
       System.setProperty("org.slf4j.simpleLogger.logFile", "System.out");
@@ -100,7 +109,7 @@ public class Main implements Callable<Void> {
   }
 
   @Override
-  public Void call() {
+  public Void call() throws IOException {
     String usedContextPath = contextConfig.noContextPath ? "" : contextConfig.contextPath;
 
     new KeycloakMock(
@@ -112,6 +121,7 @@ public class Main implements Callable<Void> {
                 .withDefaultScopes(scopes)
                 .withDefaultTokenLifespan(getParsedLifespan())
                 .withLoginRoleMapping(loginRoleMapping)
+                .withCustomClaims(customClaims)
                 .build())
         .start();
 

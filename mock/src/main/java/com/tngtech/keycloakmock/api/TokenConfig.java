@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -214,7 +215,7 @@ public class TokenConfig {
    */
   public static final class Builder {
 
-    @Nonnull private final Set<String> audience = new HashSet<>();
+    @Nonnull private final Set<String> audience = new TreeSet<>();
     @Nonnull private String authorizedParty = "client";
     @Nonnull private String subject = "user";
     @Nonnull private final List<String> scopes = new ArrayList<>();

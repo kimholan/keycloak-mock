@@ -7,6 +7,7 @@ import java.security.KeyStore;
 import java.security.PublicKey;
 import java.time.Duration;
 import java.util.Collection;
+import java.util.Map;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
@@ -37,6 +38,10 @@ public interface SignatureComponent {
     @BindsInstance
     public abstract Builder defaultTokenLifespan(
         @Named("tokenLifespan") Duration defaultTokenLifespan);
+
+    @BindsInstance
+    public abstract Builder customClaims(
+        @Named("customClaims") Map<String, Map<String, Object>>  customClaims);
 
     public abstract SignatureComponent build();
   }

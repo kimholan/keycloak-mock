@@ -1,11 +1,17 @@
 package com.tngtech.keycloakmock.api;
 
 import com.tngtech.keycloakmock.impl.Protocol;
+import io.vertx.core.json.JsonArray;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import javax.annotation.Nonnull;
 
@@ -35,6 +41,7 @@ public final class ServerConfig {
   @Nonnull private final List<String> defaultScopes;
   @Nonnull private final Duration defaultTokenLifespan;
   @Nonnull private final LoginRoleMapping loginRoleMapping;
+  @Nonnull private final Map<String, Map<String, Object>> customClaims;
 
   private ServerConfig(@Nonnull final Builder builder) {
     this.port = (builder.port > 0 ? builder.port : RANDOM_PORT);
@@ -50,6 +57,7 @@ public final class ServerConfig {
     this.defaultScopes = builder.defaultScopes;
     this.defaultTokenLifespan = builder.defaultTokenLifespan;
     this.loginRoleMapping = builder.loginRoleMapping;
+    this.customClaims = builder.customClaims;
   }
 
   /**
@@ -154,6 +162,11 @@ public final class ServerConfig {
     return loginRoleMapping;
   }
 
+  @Nonnull
+  public Map<String, Map<String, Object>> getCustomClaims() {
+    return Collections.unmodifiableMap(customClaims);
+  }
+
   /**
    * Builder for {@link ServerConfig}.
    *
@@ -170,6 +183,7 @@ public final class ServerConfig {
     @Nonnull private final List<String> defaultScopes = new ArrayList<>();
     @Nonnull private Duration defaultTokenLifespan = DEFAULT_TOKEN_LIFESPAN;
     @Nonnull private LoginRoleMapping loginRoleMapping = LoginRoleMapping.TO_REALM;
+    @Nonnull private final Map<String, Map<String, Object>> customClaims = new HashMap<>();
 
     private Builder() {
       defaultScopes.add(DEFAULT_SCOPE);
@@ -389,6 +403,25 @@ public final class ServerConfig {
     @Nonnull
     public Builder withLoginRoleMapping(@Nonnull final LoginRoleMapping loginRoleMapping) {
       this.loginRoleMapping = loginRoleMapping;
+      return this;
+    }
+
+    @Nonnull
+    public Builder withCustomClaims(File file) throws IOException {
+      if (file != null) {
+        var jsonString = Files.readString(file.toPath());
+        var list = (List<Map<String, Object>>) new JsonArray(jsonString).getList();
+        list.forEach(
+            it -> {
+              var azp = it.get("azp");
+              var sub = it.get("sub");
+              var key = azp + "|" + sub;
+
+              System.out.printf("[CUSTOM_CLAIMS_PUT] %s=%s", key, it);
+              this.customClaims.put(key, it);
+            });
+      }
+
       return this;
     }
 

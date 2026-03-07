@@ -42,6 +42,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.Collection;
+import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -237,4 +238,12 @@ public class ServerModule {
   Collection<String> provideDefaultAudiences(@Nonnull ServerConfig serverConfig) {
     return serverConfig.getDefaultAudiences();
   }
+
+  @Provides
+  @Singleton
+  @Named("customClaims")
+  Map provideCustomClaims(@Nonnull ServerConfig serverConfig) {
+    return serverConfig.getCustomClaims();
+  }
+
 }

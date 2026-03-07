@@ -76,6 +76,7 @@ class TokenGeneratorTest {
         .defaultScopes(defaultScopes)
         .defaultAudiences(defaultAudiences)
         .defaultTokenLifespan(defaultLifespan)
+        .customClaims(Map.of("azp|sub", Map.of("azp","ignored", "sub", "ignored", "custom_claim", "custom_claim_value")))
         .build()
         .tokenGenerator();
   }
@@ -333,5 +334,31 @@ class TokenGeneratorTest {
         Jwts.parser().verifyWith(publicKey).build().parseSignedClaims(token).getPayload();
 
     assertThat(claims.getAudience()).containsExactlyInAnyOrder("look-only-at-me");
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void custom_claims() {
+    uut = setupUut(Collections.emptyList(), Collections.emptyList(), Duration.ofHours(10));
+
+    String token =
+            uut.getToken(
+                    aTokenConfig()
+                            .withAudience("azp")
+                            .withAuthorizedParty("azp")
+                            .withSubject("sub")
+                            .build(),
+                    urlConfiguration);
+
+    verify(urlConfiguration).getIssuer();
+    Jws<Claims> jwt = Jwts.parser().verifyWith(publicKey).build().parseSignedClaims(token);
+    assertThat(jwt.getHeader())
+            .containsEntry("alg", "RS256")
+            .containsEntry("kid", "keyId")
+            .containsEntry("typ", "JWT");
+    Claims claims = jwt.getPayload();
+
+    assertThat(claims).isEqualTo(uut.parseToken(token));
+    assertThat(claims.get("custom_claim")).isEqualTo("custom_claim_value");
   }
 }

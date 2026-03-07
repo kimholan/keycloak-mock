@@ -65,6 +65,7 @@ public class KeycloakMock {
             .defaultScopes(serverConfig.getDefaultScopes())
             .defaultAudiences(serverConfig.getDefaultAudiences())
             .defaultTokenLifespan(serverConfig.getDefaultTokenLifespan())
+            .customClaims(serverConfig.getCustomClaims())
             .build();
   }
 
