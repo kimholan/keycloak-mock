@@ -8,13 +8,15 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.security.Key;
 import java.security.PublicKey;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
@@ -30,7 +32,7 @@ public class TokenGenerator {
   @Nonnull private final Collection<String> defaultAudiences;
   @Nonnull private final Collection<String> defaultScopes;
   @Nonnull private final Duration defaultTokenLifespan;
-  @Nonnull private final Map<String, Map<String, Object>> customClaims;
+  @Nonnull private final CustomClaims customClaims;
 
   @Inject
   TokenGenerator(
@@ -40,8 +42,7 @@ public class TokenGenerator {
       @Nonnull @Named("audiences") Collection<String> defaultAudiences,
       @Nonnull @Named("scopes") Collection<String> defaultScopes,
       @Nonnull @Named("tokenLifespan") Duration defaultTokenLifespan,
-      @Nonnull @Named("customClaims") Map<String, Map<String, Object>> customClaims
-  ) {
+      @Nonnull CustomClaims customClaims) {
     this.publicKey = publicKey;
     this.privateKey = privateKey;
     this.keyId = keyId;
@@ -51,10 +52,15 @@ public class TokenGenerator {
     this.customClaims = customClaims;
   }
 
+  public CustomClaims getCustomClaims() {
+    return customClaims;
+  }
+
   @Nonnull
   public String getToken(
       @Nonnull TokenConfig tokenConfig, @Nonnull UrlConfiguration requestConfiguration) {
-    var audiences = tokenConfig.getAudience().isEmpty() ? defaultAudiences : tokenConfig.getAudience();
+    var audiences =
+        tokenConfig.getAudience().isEmpty() ? defaultAudiences : tokenConfig.getAudience();
     JwtBuilder builder =
         Jwts.builder()
             .header()
@@ -108,17 +114,15 @@ public class TokenGenerator {
           .claim("preferred_username", tokenConfig.getPreferredUsername());
     }
 
-    var customClaimsKey = tokenConfig.getAuthorizedParty() + "|" + tokenConfig.getSubject();
-    System.err.printf("[CUSTOM_CLAIMS_KEY] %s", customClaimsKey);
-    var azpSubMatch = customClaims.get(customClaimsKey);
-    if (azpSubMatch == null) {
-      System.err.printf("[CUSTOM_CLAIMS_KEY_MATCH_NOK] %s", customClaimsKey);
-    } else {
-      System.err.printf("[CUSTOM_CLAIMS_KEY_MATCH_OK] %s=%s", customClaimsKey, azpSubMatch);
+    var azp = tokenConfig.getAuthorizedParty();
+    var sub = tokenConfig.getSubject();
+
+    var azpSubMatch = customClaims.get(azp, sub);
+    if (azpSubMatch!=null) {
       azpSubMatch.entrySet().stream()
-          .filter((it) -> !"azp".equalsIgnoreCase(it.getKey()))
-          .filter((it) -> !"sub".equalsIgnoreCase(it.getKey()))
-          .forEach(it -> builder.claim(it.getKey(), it.getValue()));
+              .filter((it) -> !"azp".equalsIgnoreCase(it.getKey()))
+              .filter((it) -> !"sub".equalsIgnoreCase(it.getKey()))
+              .forEach(it -> builder.claim(it.getKey(), it.getValue()));
     }
 
     return builder

@@ -76,7 +76,7 @@ class TokenGeneratorTest {
         .defaultScopes(defaultScopes)
         .defaultAudiences(defaultAudiences)
         .defaultTokenLifespan(defaultLifespan)
-        .customClaims(Map.of("azp|sub", Map.of("azp","ignored", "sub", "ignored", "custom_claim", "custom_claim_value")))
+        .customClaims(new CustomClaims(Map.of("azp|sub", Map.of("azp","ignored", "sub", "ignored", "custom_claim", "custom_claim_value"))))
         .build()
         .tokenGenerator();
   }

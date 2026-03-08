@@ -25,6 +25,8 @@ dependencies {
     jsResourceJar "org.keycloak:keycloak-js-adapter:$keycloak_js_version@tar.gz"
     htmlResourceJar "org.keycloak:keycloak-services:$keycloak_version"
     htmlResourceJar "org.keycloak:keycloak-themes-vendor:$keycloak_version"
+    // Source: https://mvnrepository.com/artifact/com.github.ben-manes.caffeine/caffeine
+    implementation("com.github.ben-manes.caffeine:caffeine:3.2.3")
     testImplementation 'io.fusionauth:fusionauth-jwt:6.0.0'
     // required to mock RoutingContext
     testImplementation "io.vertx:vertx-codegen:$vertx_version"

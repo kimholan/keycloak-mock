@@ -1,5 +1,6 @@
 package com.tngtech.keycloakmock.impl.dagger;
 
+import com.tngtech.keycloakmock.impl.CustomClaims;
 import com.tngtech.keycloakmock.impl.TokenGenerator;
 import dagger.BindsInstance;
 import dagger.Component;
@@ -7,7 +8,6 @@ import java.security.KeyStore;
 import java.security.PublicKey;
 import java.time.Duration;
 import java.util.Collection;
-import java.util.Map;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
@@ -41,7 +41,7 @@ public interface SignatureComponent {
 
     @BindsInstance
     public abstract Builder customClaims(
-        @Named("customClaims") Map<String, Map<String, Object>>  customClaims);
+        CustomClaims customClaims);
 
     public abstract SignatureComponent build();
   }

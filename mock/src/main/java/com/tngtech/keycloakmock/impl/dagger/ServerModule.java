@@ -1,13 +1,17 @@
 package com.tngtech.keycloakmock.impl.dagger;
 
+import static io.netty.handler.codec.http.HttpHeaderValues.APPLICATION_JSON;
 import static io.netty.handler.codec.http.HttpHeaderValues.TEXT_HTML;
+import static io.netty.handler.codec.http.HttpHeaderValues.TEXT_PLAIN;
 
 import com.tngtech.keycloakmock.api.LoginRoleMapping;
 import com.tngtech.keycloakmock.api.ServerConfig;
+import com.tngtech.keycloakmock.impl.CustomClaims;
 import com.tngtech.keycloakmock.impl.UrlConfiguration;
 import com.tngtech.keycloakmock.impl.UrlConfigurationFactory;
 import com.tngtech.keycloakmock.impl.handler.AuthenticationRoute;
 import com.tngtech.keycloakmock.impl.handler.CommonHandler;
+import com.tngtech.keycloakmock.impl.handler.CustomClaimsRoute;
 import com.tngtech.keycloakmock.impl.handler.DocumentationRoute;
 import com.tngtech.keycloakmock.impl.handler.FailureHandler;
 import com.tngtech.keycloakmock.impl.handler.IFrameRoute;
@@ -42,7 +46,6 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.Collection;
-import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -143,7 +146,8 @@ public class ServerModule {
       @Nonnull OutOfBandLoginRoute outOfBandLoginRoute,
       @Nonnull @Named("keycloakJs") ResourceFileHandler keycloakJsRoute,
       @Nonnull @Named("stylesheet") ResourceFileHandler stylesheetRoute,
-      @Nonnull DocumentationRoute documentationRoute) {
+      @Nonnull DocumentationRoute documentationRoute,
+      @Nonnull CustomClaimsRoute customClaimsRoute) {
     UrlConfiguration routing = urlConfigurationFactory.create(null, ":realm");
     Router router = Router.router(vertx);
     router
@@ -213,6 +217,14 @@ public class ServerModule {
         .setName("documentation endpoint")
         .produces(TEXT_HTML.toString())
         .handler(documentationRoute);
+
+    router
+        .route("/custom-claims")
+        .setName("custom claims endpoint")
+            .method(HttpMethod.GET)
+            .method(HttpMethod.POST)
+        .produces(APPLICATION_JSON.toString())
+        .handler(customClaimsRoute);
     return router;
   }
 
@@ -241,9 +253,7 @@ public class ServerModule {
 
   @Provides
   @Singleton
-  @Named("customClaims")
-  Map provideCustomClaims(@Nonnull ServerConfig serverConfig) {
+  CustomClaims provideCustomClaims(@Nonnull ServerConfig serverConfig) {
     return serverConfig.getCustomClaims();
   }
-
 }
